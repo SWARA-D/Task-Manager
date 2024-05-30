@@ -1,4 +1,7 @@
 <template>
+  <transition name="toast">
+    <toast v-if="showToast">Start date must be before end date!</toast>
+  </transition>
   <form>
     <div class="divs" id="task-form">
       <div>
@@ -36,6 +39,7 @@
 import { useTaskStore } from '@/stores/TaskStore';
 import { defineComponent, ref } from 'vue';
 import EventBus from '../main'
+import ToastError from './ToastError.vue'
 
 interface Task{
   taskId: number,
@@ -46,12 +50,15 @@ interface Task{
 }
 
 export default defineComponent({
+  components: {
+    'toast': ToastError
+  },
   created() {
     EventBus.on('edit-task',(tempTask: any) => {
       this.editTask(tempTask)
     })
   },
-  data(): {newTask: Task, btnName: string}
+  data(): {newTask: Task, btnName: string, showToast: boolean}
   {
     return {
       newTask: {
@@ -61,14 +68,16 @@ export default defineComponent({
             taskStart: new Date(),
             taskEnd: new Date()
       },
-      btnName: 'Add Task'
+      btnName: 'Add Task',
+      showToast: false
     }
   },
     methods:
     {
       addTask() {
         if (this.newTask.taskStart > this.newTask.taskEnd) {
-          alert("Start date must be before end date.");
+          this.showToast = true
+          setTimeout(() => this.showToast = false, 3000)
           return; 
         }
 
@@ -114,4 +123,24 @@ export default defineComponent({
   display: flex;
   justify-content: space-around;
 }
+.toast-enter-active {
+  animation: wobble 0.5s ease;
+}
+  .toast-leave-to {
+    opacity: 0;
+    transform: translateY(-60px);
+  }
+  .toast-leave-active {
+    transition: all 0.3s ease;
+  }
+
+  @keyframes wobble {
+    0% { transform: translateY(-100px); opacity: 0 }
+    50% { transform: translateY(0px); opacity: 1 }
+    60% { transform: translateX(8px); opacity: 1 }
+    70% { transform: translateX(-8px); opacity: 1 }
+    80% { transform: translateX(4px); opacity: 1 }
+    90% { transform: translateX(-4px); opacity: 1 }
+    100% { transform: translateX(0px); opacity: 1 }
+  }
 </style>
